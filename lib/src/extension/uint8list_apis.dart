@@ -15,6 +15,9 @@ extension Uint8ListEncodeApis on Uint8List {
 
 extension Uint8ListDecodeApis on Uint8List {
   DateTime toDate() {
+    if (length < 4) {
+      throw const FormatException('Invalid length for date conversion, expected 4 bytes.');
+    }
     // The date is in the format 'CCYYMMDD'
     int century = ((this[0] >> 4) * 10 + (this[0] & 0x0F)) * 100;
     int year = (this[1] >> 4) * 10 + (this[1] & 0x0F);
