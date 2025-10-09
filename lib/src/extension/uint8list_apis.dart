@@ -18,12 +18,14 @@ extension Uint8ListDecodeApis on Uint8List {
     if (length < 4) {
       throw const FormatException('Invalid length for date conversion, expected 4 bytes.');
     }
-    // The date is in the format 'CCYYMMDD'
-    int century = ((this[0] >> 4) * 10 + (this[0] & 0x0F)) * 100;
-    int year = (this[1] >> 4) * 10 + (this[1] & 0x0F);
-    int month = (this[2] >> 4) * 10 + (this[2] & 0x0F);
-    int day = (this[3] >> 4) * 10 + (this[3] & 0x0F);
 
-    return DateTime(century + year, month, day);
+    int bcdToInt(int byte) => ((byte >> 4) * 10) + (byte & 0x0F);
+
+    // The date is in the format 'CCYYMMDD'
+    final year = bcdToInt(this[0]) * 100 + bcdToInt(this[1]);
+    final month = bcdToInt(this[2]);
+    final day = bcdToInt(this[3]);
+
+    return DateTime(year, month, day);
   }
 }
