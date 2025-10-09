@@ -44,7 +44,7 @@ class MRZ {
 
   String toEncodedString() {
     var data = toBytes();
-    final inputStream = InputStream(data);
+    final inputStream = InputMemoryStream(data);
     var result = _read(inputStream, data.length);
 
     return result;
@@ -91,7 +91,7 @@ class MRZ {
   }
 
   void _parse(Uint8List data) {
-    final istream = InputStream(data);
+    final istream = InputMemoryStream(data);
     if (data.length == 90) {
       version = MRZVersion.td1;
       _parseTD1(istream);
@@ -216,6 +216,8 @@ class MRZ {
     }
     if (nameIds.length > 1) {
       firstName = nameIds.sublist(1).join(' ');
+    } else {
+      firstName = '';
     }
   }
 
