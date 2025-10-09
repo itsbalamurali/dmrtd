@@ -216,6 +216,8 @@ class MRZ {
     }
     if (nameIds.length > 1) {
       firstName = nameIds.sublist(1).join(' ');
+    } else {
+      firstName = '';
     }
   }
 
