@@ -16,24 +16,26 @@ extension StringDecodeApis on String {
 
 extension StringYYMMDDateApi on String {
   DateTime parseDateYYMMDD({bool futureDate = false}) {
-    if (length < 6) {
-      throw FormatException("Invalid length of compact date string");
+    final compact = replaceAll(RegExp(r'[^0-9]'), '');
+    if (compact.length < 6) {
+      throw const FormatException('Invalid length of compact date string');
     }
 
-    int y = int.parse(substring(0, 2)) + 2000;
-    int m = int.parse(substring(2, 4));
-    int d = int.parse(substring(4, 6));
+    var y = int.parse(compact.substring(0, 2)) + 2000;
+    final m = int.parse(compact.substring(2, 4));
+    final d = int.parse(compact.substring(4, 6));
 
     final now = DateTime.now();
-    int maxYear  = now.year;
-    int maxMonth = now.month;
+    var maxYear = now.year;
+    var maxMonth = now.month;
+
     if (futureDate) {
-      maxYear  += 20; // cut off year 20 years from now
-      maxMonth += 5;
+      final future = DateTime(now.year + 20, now.month + 5);
+      maxYear = future.year;
+      maxMonth = future.month;
     }
 
-    // If parsed year is greater than max wind back for 100 years
-    if (y > maxYear || ( y == maxYear && maxMonth < m)) {
+    if (y > maxYear || (y == maxYear && maxMonth < m)) {
       y -= 100;
     }
 
@@ -41,10 +43,23 @@ extension StringYYMMDDateApi on String {
   }
 
   DateTime parseDate({bool futureDate = false}) {
-    if (length == 6) {
-      return this.parseDateYYMMDD(futureDate: futureDate);
-    } else {
-      return DateTime.parse(this);
+    final raw = trim();
+    if (raw.isEmpty) {
+      throw const FormatException('Empty date string');
     }
+
+    final cleaned = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleaned.length == 6) {
+      return cleaned.parseDateYYMMDD(futureDate: futureDate);
+    }
+
+    if (cleaned.length == 8) {
+      final year = int.parse(cleaned.substring(0, 4));
+      final month = int.parse(cleaned.substring(4, 6));
+      final day = int.parse(cleaned.substring(6, 8));
+      return DateTime(year, month, day);
+    }
+
+    return DateTime.parse(raw);
   }
 }
