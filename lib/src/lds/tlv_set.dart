@@ -24,7 +24,7 @@ class TLVSet {
 
   // Standard Constructor
   TLVSet({List<TLV>? tlvs}):
-          this._tlvs = tlvs ?? List<TLV>.empty(growable: true);
+          _tlvs = tlvs ?? List<TLV>.empty(growable: true);
 
   // Factory Constructor
   factory TLVSet.decode({required Uint8List encodedData}) {

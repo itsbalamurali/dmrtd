@@ -1,7 +1,7 @@
+import "dart:typed_data";
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 // ignore_for_file: constant_identifier_names
 
-import 'dart:typed_data';
 import 'package:dmrtd/extensions.dart';
 import 'dg.dart';
 import '../ef.dart';
@@ -16,7 +16,7 @@ class EfDG1 extends DataGroup {
   late final MRZ _mrz;
   MRZ get mrz => _mrz;
 
-  EfDG1.fromBytes(Uint8List data) : super.fromBytes(data);
+  EfDG1.fromBytes(super.data) : super.fromBytes();
 
   @override
   int get fid => FID;

@@ -8,13 +8,13 @@ import 'package:dmrtd/extensions.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-import '../lds/asn1ObjectIdentifiers.dart';
+import '../lds/asn1_object_identifiers.dart';
 import 'ssc.dart';
 import 'iso7816/command_apdu.dart';
 import 'iso7816/iso7816.dart';
 import 'iso7816/response_apdu.dart';
 import 'iso7816/sm.dart';
-import 'iso7816/smcipher.dart';
+
 import '../crypto/iso9797.dart';
 import '../lds/tlv.dart';
 import '../crypto/aes.dart';
@@ -28,7 +28,7 @@ class MrtdSM extends SecureMessaging {
   SSC _ssc;
   set ssc(final SSC ssc) => _ssc = ssc;
 
-  MrtdSM(SMCipher smCipher, this._ssc) : super(smCipher);
+  MrtdSM(super.smCipher, this._ssc);
 
   @override
   CommandAPDU protect(final CommandAPDU cmd) {
@@ -138,10 +138,10 @@ class MrtdSM extends SecureMessaging {
   }
 
   int blockLen() {
-    if(cipher.type == CipherAlgorithm.AES) {
-      return AES_BLOCK_SIZE;
+    if(cipher.type == CipherAlgorithm.aes) {
+      return aesBlockSize;
     }
-    else if(cipher.type == CipherAlgorithm.DESede) {
+    else if(cipher.type == CipherAlgorithm.deSede) {
       return DESCipher.blockSize;
     }
     else {

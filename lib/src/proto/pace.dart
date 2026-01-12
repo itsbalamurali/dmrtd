@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:dmrtd/extensions.dart';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 import 'package:dmrtd/src/proto/public_key_pace.dart';
 import 'package:dmrtd/src/crypto/kdf.dart';
 import 'package:dmrtd/src/crypto/aes.dart';
@@ -16,12 +16,11 @@ import 'package:dmrtd/src/crypto/des.dart';
 import 'package:logging/logging.dart';
 import 'package:pointycastle/ecc/api.dart';
 
-import "package:dmrtd/src/extension/logging_apis.dart";
 import "package:dmrtd/src/lds/tlv.dart";
 import "package:dmrtd/src/proto/iso7816/icc.dart";
 import 'package:dmrtd/src/lds/efcard_access.dart';
 
-import '../lds/tlvSet.dart';
+import '../lds/tlv_set.dart';
 import '../utils.dart';
 import 'access_key.dart';
 import 'ecdh_pace.dart';
@@ -60,7 +59,7 @@ class PACEResponseCheckError implements Exception {
 }
 
 //Specified in section 4.4.5 of ICAO 9303 p11, table 4:Exchanged data for PACE
-class ExchangedDataPACE{
+class ExchangedDataPace{
   //step 1 - encrypted nonce
   static const encryptedNonceResponse           = 0x80;
 
@@ -124,14 +123,9 @@ class ResponseAPDUStep1Pace {
 
 
   void parse(){
-    //checking if response has data
-    if (this.data == null){
-      _log.error("Pace.step1; Response data is null");
-      throw ResponseAPDUStep1PaceError("Pace.step1; Response data is null");
-    }
     _log.sdVerbose("ResponseAPDUStep1Pace data: ${data.hex()}");
 
-    TLV dynamicAuthenticationData = TLV.fromBytes(data!);
+    TLV dynamicAuthenticationData = TLV.fromBytes(data);
 
     //checking if response contains dynamic authentication data
     if (dynamicAuthenticationData.tag != ResponseDataTagList.dynamicAuthenticationData){
@@ -142,11 +136,11 @@ class ResponseAPDUStep1Pace {
 
     //checking if dynamic authentication data contains encrypted nonce
     TLV encryptedNonce = TLV.fromBytes(dynamicAuthenticationData.value);
-    if (encryptedNonce.tag != ExchangedDataPACE.encryptedNonceResponse){
+    if (encryptedNonce.tag != ExchangedDataPace.encryptedNonceResponse){
       _log.error("Pace.step1; Dynamic authentication data does not contain encrypted nonce");
       throw ResponseAPDUStep1PaceError("Pace.step1; Dynamic authentication data does not contain encrypted nonce");
     }
-    this._nonce = encryptedNonce.value;
+    _nonce = encryptedNonce.value;
     _log.sdVerbose("Nonce: ${_nonce.hex()}");
   }
 }
@@ -164,15 +158,10 @@ class ResponseAPDUStep2or3Pace {
   ResponseAPDUStep2or3Pace(this.data);
 
 
-  void parse({required TOKEN_AGREEMENT_ALGO tokenAgreementAlgorithm}){
-    //checking if response has data
-    if (this.data == null){
-      _log.error("Pace.step2; Response data is null");
-      throw ResponseAPDUStep2or3PaceError("Pace.step2; Response data is null");
-    }
+  void parse({required TokenAgreementAlgo tokenAgreementAlgorithm}){
     _log.sdVerbose("ResponseAPDUStep2and3Pace data: ${data.hex()}");
 
-    TLV dynamicAuthenticationData = TLV.fromBytes(data!);
+    TLV dynamicAuthenticationData = TLV.fromBytes(data);
 
     //checking if response contains dynamic authentication data
     if (dynamicAuthenticationData.tag != ResponseDataTagList.dynamicAuthenticationData){
@@ -185,10 +174,10 @@ class ResponseAPDUStep2or3Pace {
     TLV mappingData = TLV.fromBytes(dynamicAuthenticationData.value);
 
     int mappingDataResponseTag = mappingData.tag;
-    if (mappingDataResponseTag == ExchangedDataPACE.mappingDataResponse){
+    if (mappingDataResponseTag == ExchangedDataPace.mappingDataResponse){
       _log.verbose("... step 2");
     }
-    else if (mappingDataResponseTag == ExchangedDataPACE.ephemeralPublicKeyResponse){
+    else if (mappingDataResponseTag == ExchangedDataPace.ephemeralPublicKeyResponse){
       _log.verbose("... step 3");
     }
     else {
@@ -196,12 +185,12 @@ class ResponseAPDUStep2or3Pace {
       throw ResponseAPDUStep2or3PaceError("Pace.step2 or 3; Dynamic authentication data does not contain mapping data");
     }
 
-    if (mappingData.value.length == 0){
+    if (mappingData.value.isEmpty){
       _log.error("Pace.step2 or 3; Mapping data is empty");
       throw ResponseAPDUStep2or3PaceError("Pace.step2 or 3; Mapping data is empty");
     }
 
-    if (tokenAgreementAlgorithm == TOKEN_AGREEMENT_ALGO.ECDH){
+    if (tokenAgreementAlgorithm == TokenAgreementAlgo.ecdh){
       // ECDH
       if (mappingData.value.first != 0x04) {
         _log.verbose("Pace.step2 or 3; Token agreement is ECDH, but first element is not 0x04");
@@ -221,7 +210,7 @@ class ResponseAPDUStep2or3Pace {
       _log.verbose("Pace.step2 or 3; Mapping data contains DH public key");
       _public = PublicKeyPACEdH(pub: mappingData.value);
     }
-    _log.sdVerbose("ICC public key: ${_public.toString()}");
+    _log.sdVerbose("ICC public key: $_public");
   }
 }
 
@@ -240,15 +229,9 @@ class ResponseAPDUStep4Pace {
 
 
   void parse(){
-    //checking if response has data
-    if (this.data == null){
-      _log.error("Pace.step4; Response data is null");
-      throw ResponseAPDUStep2or3PaceError("Pace.step4; Response data is null");
-    }
-
     _log.sdVerbose("ResponseAPDUStep4Pace data: ${data.hex()}");
 
-    TLV dynamicAuthenticationData = TLV.fromBytes(data!);
+    TLV dynamicAuthenticationData = TLV.fromBytes(data);
 
     //checking if response contains dynamic authentication data
     if (dynamicAuthenticationData.tag != ResponseDataTagList.dynamicAuthenticationData){
@@ -261,12 +244,12 @@ class ResponseAPDUStep4Pace {
     TLV mappingData = TLV.fromBytes(dynamicAuthenticationData.value);
 
     int mappingDataResponseTag = mappingData.tag;
-    if (mappingDataResponseTag != ExchangedDataPACE.authenticationTokenResponse){
+    if (mappingDataResponseTag != ExchangedDataPace.authenticationTokenResponse){
       _log.error("Pace.step4; Dynamic authentication data does not contain authentication token");
       throw ResponseAPDUStep4PaceError("Pace.step4; Dynamic authentication data does not contain authentication token");
     }
 
-    if (mappingData.value.length == 0){
+    if (mappingData.value.isEmpty){
       _log.error("Pace.step4; Mapping data is empty");
       throw ResponseAPDUStep4PaceError("Pace.step4; Mapping data is empty");
     }
@@ -301,41 +284,37 @@ class PACE {
     required PublicKeyPACE ephemeralPublic}) {
     try {
       _log.debug("Generating ENCODING INPUT data ...");
-      const INPUT_DATA_T_TAG = 0x7f49;
-      const OBJECT_IDENTIFIER_TAG = 0x06;
-      const DH_POINT = 0x84;
-      const ELLIPTIC_CURVE_POINT = 0x86;
-      const UNCOMPRESSED_POINT = 0x04;
+      const inputDataTTag = 0x7f49;
+      const objectIdentifierTag = 0x06;
+      const dhPoint = 0x84;
+      const ellipticCurvePoint = 0x86;
+      const uncompressedPoint = 0x04;
 
 
       // object identifier, both modes have the same identifier layout
       TLV objectIdentifierData = TLV(
-          OBJECT_IDENTIFIER_TAG,
+          objectIdentifierTag,
           Uint8List.sublistView(Uint8List.fromList(crytpographicMechanism.identifier), 1));
 
       _log.sdVerbose("Object identifier: ${objectIdentifierData.toBytes().hex()}");
-      TLV? publicKeyData = null;
+      TLV? publicKeyData;
 
-      _log.sdVerbose("Ephemeral public point: ${ephemeralPublic.toString()}");
+      _log.sdVerbose("Ephemeral public point: $ephemeralPublic");
 
-      if (ephemeralPublic.agreementAlgorithm == TOKEN_AGREEMENT_ALGO.ECDH) {
+      if (ephemeralPublic.agreementAlgorithm == TokenAgreementAlgo.ecdh) {
         // ECDH
-        Uint8List uncompressedPoint = Uint8List.fromList([UNCOMPRESSED_POINT]);
-        publicKeyData = TLV(ELLIPTIC_CURVE_POINT, Uint8List.fromList(
-            uncompressedPoint + ephemeralPublic.toBytes()));
+        Uint8List uncompressedPointBytes = Uint8List.fromList([uncompressedPoint]);
+        publicKeyData = TLV(ellipticCurvePoint, Uint8List.fromList(
+            uncompressedPointBytes + ephemeralPublic.toBytes()));
         _log.sdVerbose("Public key EC: ${publicKeyData.toBytes().hex()}");
       }
       else {
         // DH
-        publicKeyData = TLV(DH_POINT, ephemeralPublic.toBytes());
+        publicKeyData = TLV(dhPoint, ephemeralPublic.toBytes());
         _log.sdVerbose("Public key DH: ${publicKeyData.toBytes().hex()}");
       }
 
-      if (publicKeyData == null){
-        _log.error("PACE.generateEncodingInputData; Public key DH is null");
-        throw PACEError("PACE.generateEncodingInputData; Public key DH is null");
-      }
-      TLV inputData = TLV(INPUT_DATA_T_TAG, Uint8List.fromList(
+      TLV inputData = TLV(inputDataTTag, Uint8List.fromList(
           objectIdentifierData.toBytes() + publicKeyData.toBytes()));
 
       _log.sdDebug("ENCODING INPUT data: ${inputData.toBytes().hex()}");
@@ -352,16 +331,16 @@ class PACE {
     required final Uint8List cryptographicMechanism,
     required int paceRefType}) {
     _log.debug("Generating AUTHENTICATION TEMPLATE FOR MUTUAL AUTHENTICATION data ...");
-    const CYRYPTOGRAPHIC_MECHANISM_REF_TAG = 0x80;
-    const PASSWORD_REF_PUB_KEY_TAG = 0x83;
+    const cryptographicMechanismRefTag = 0x80;
+    const passwordRefPubKeyTag = 0x83;
 
-    TLV cm = TLV(CYRYPTOGRAPHIC_MECHANISM_REF_TAG, Uint8List.sublistView(cryptographicMechanism, 1));
-    TLV drp = TLV.fromIntValue(PASSWORD_REF_PUB_KEY_TAG, paceRefType);
+    TLV cm = TLV(cryptographicMechanismRefTag, Uint8List.sublistView(cryptographicMechanism, 1));
+    TLV drp = TLV.fromIntValue(passwordRefPubKeyTag, paceRefType);
     TLVSet set = TLVSet();
     set.add(cm); //first element
     set.add(drp); //second element
     //set.add(additionalACrytpgraphicAlgorithm); //third element
-    _log.sdDebug("AUTHENTICATION TEMPLATE FOR MUTUAL AUTHENTICATION data: ${set.toString()}");
+    _log.sdDebug("AUTHENTICATION TEMPLATE FOR MUTUAL AUTHENTICATION data: $set");
     return set.toBytes();
   }
 
@@ -369,35 +348,35 @@ class PACE {
   static Uint8List generateGeneralAuthenticateDataStep1() {
     //the same message for ECDH and DH
     _log.debug("Generating GENERAL AUTHENTICATE (step 1) data ...");
-    const ABSENT_TAG = 0x7C;
-    _log.sdDebug("GENERAL AUTHENTICATE data: ${TLVEmpty(ABSENT_TAG).toBytes()}");
-    return TLVEmpty(ABSENT_TAG).toBytes();
+    const absentTag = 0x7C;
+    _log.sdDebug("GENERAL AUTHENTICATE data: ${TLVEmpty(absentTag).toBytes()}");
+    return TLVEmpty(absentTag).toBytes();
   }
 
   static Uint8List generateGeneralAuthenticateDataStep2and3({required PublicKeyPACE public, bool isEphemeral = false}) {
     //the same message for ECDH and DH
     _log.debug("Generating GENERAL AUTHENTICATE (step 2 (or 3)) data: Is ephemeral: $isEphemeral ...");
-    const DYNAMIC_AUTHENTICATION_DATA_TAG = 0x7C;
-    const MAPPING_DATA_TAG = 0x81;
-    const MAPPING_DATA_EPHEMERAL_TAG = 0x83;
-    const UNCOMPRESSED_POINT = 0x04;
-    var   PUBLIC_KEY_TAG = isEphemeral ? MAPPING_DATA_EPHEMERAL_TAG : MAPPING_DATA_TAG;
+    const dynamicAuthenticationDataTag = 0x7C;
+    const mappingDataTag = 0x81;
+    const mappingDataEphemeralTag = 0x83;
+    const uncompressedPoint = 0x04;
+    var   publicKeyTag = isEphemeral ? mappingDataEphemeralTag : mappingDataTag;
 
     TLV mappingData;
-    if (public.agreementAlgorithm == TOKEN_AGREEMENT_ALGO.ECDH) {
+    if (public.agreementAlgorithm == TokenAgreementAlgo.ecdh) {
       // ECDH
-      Uint8List uncompressedPoint = Uint8List.fromList([UNCOMPRESSED_POINT]);
-      mappingData = TLV(PUBLIC_KEY_TAG, Uint8List.fromList(
-          uncompressedPoint + public.toBytes()));
+      Uint8List uncompressedPointBytes = Uint8List.fromList([uncompressedPoint]);
+      mappingData = TLV(publicKeyTag, Uint8List.fromList(
+          uncompressedPointBytes + public.toBytes()));
       _log.sdVerbose("ECDH data: ${mappingData.toBytes().hex()}");
     }
     else {
       // DH
-      mappingData = TLV(PUBLIC_KEY_TAG, public.toBytes());
+      mappingData = TLV(publicKeyTag, public.toBytes());
       _log.sdVerbose("DH data: ${mappingData.toBytes().hex()}");
     }
 
-    TLV dynamicAuthenticationData = TLV(DYNAMIC_AUTHENTICATION_DATA_TAG,
+    TLV dynamicAuthenticationData = TLV(dynamicAuthenticationDataTag,
                                         mappingData.toBytes());
 
     _log.sdVerbose("PACE step 2 (or 3) data: ${dynamicAuthenticationData.toBytes().hex()}");
@@ -407,10 +386,10 @@ class PACE {
   static Uint8List generateGeneralAuthenticateDataStep4({required Uint8List authToken}) {
     //the same message for ECDH and DH
     _log.debug("Generating GENERAL AUTHENTICATE (step 4)");
-    const DYNAMIC_AUTHENTICATION_DATA_TAG = 0x7C;
-    const AUTHENTICATION_TOKEN_TAG = 0x85;
-    TLV authenticationToken = TLV(AUTHENTICATION_TOKEN_TAG, authToken);
-    TLV dynamicAuthenticationData = TLV(DYNAMIC_AUTHENTICATION_DATA_TAG,
+    const dynamicAuthenticationDataTag = 0x7C;
+    const authenticationTokenTag = 0x85;
+    TLV authenticationToken = TLV(authenticationTokenTag, authToken);
+    TLV dynamicAuthenticationData = TLV(dynamicAuthenticationDataTag,
         authenticationToken.toBytes());
 
     _log.sdVerbose("PACE step 4 data: ${dynamicAuthenticationData.toBytes().hex()}");
@@ -418,7 +397,7 @@ class PACE {
   }
 
   static Uint8List cacluateEncKey({required  OIEPaceProtocol paceProtocol, required Uint8List seed}){
-    KEY_LENGTH keyLength = paceProtocol.keyLength;
+    KeyLength keyLength = paceProtocol.keyLength;
     CipherAlgorithm cipherAlgorithm = paceProtocol.cipherAlgoritm;
 
     _log.debug("f");
@@ -426,16 +405,16 @@ class PACE {
                   "Key length: $keyLength, "
                   "Cipher algorithm: $cipherAlgorithm");
 
-    if (cipherAlgorithm == CipherAlgorithm.AES) {
-      if (keyLength == KEY_LENGTH.s128) {
+    if (cipherAlgorithm == CipherAlgorithm.aes) {
+      if (keyLength == KeyLength.s128) {
         _log.debug("Cipher algorithm: AES, Key length: 128 bits");
         return DeriveKey.aes128(seed, paceMode: false);
       }
-      else if (keyLength == KEY_LENGTH.s192) {
+      else if (keyLength == KeyLength.s192) {
         _log.debug("Cipher algorithm: AES, Key length: 192 bits");
         return DeriveKey.aes192(seed, paceMode: false);
       }
-      else if (keyLength == KEY_LENGTH.s256) {
+      else if (keyLength == KeyLength.s256) {
         _log.debug("Cipher algorithm: AES, Key length: 256 bits");
         return DeriveKey.aes256(seed, paceMode: false);
       }
@@ -444,7 +423,7 @@ class PACE {
         throw PACEError("Key length is not supported");
       }
     }
-    else if (cipherAlgorithm == CipherAlgorithm.DESede) {
+    else if (cipherAlgorithm == CipherAlgorithm.deSede) {
       _log.debug("Cipher algorithm: DESede.");
       return DeriveKey.desEDE(seed, paceMode: false);
     }
@@ -455,7 +434,7 @@ class PACE {
   }
 
   static Uint8List cacluateMacKey({required  OIEPaceProtocol paceProtocol, required Uint8List seed}){
-    KEY_LENGTH keyLength = paceProtocol.keyLength;
+    KeyLength keyLength = paceProtocol.keyLength;
     CipherAlgorithm cipherAlgorithm = paceProtocol.cipherAlgoritm;
 
     _log.debug("Calculating MAC key ...");
@@ -463,16 +442,16 @@ class PACE {
         "Key length: $keyLength, "
         "Cipher algorithm: $cipherAlgorithm");
 
-    if (cipherAlgorithm == CipherAlgorithm.AES) {
-      if (keyLength == KEY_LENGTH.s128) {
+    if (cipherAlgorithm == CipherAlgorithm.aes) {
+      if (keyLength == KeyLength.s128) {
         _log.debug("Cipher algorithm: AES, Key length: 128 bits");
         return DeriveKey.cmac128(seed);
       }
-      else if (keyLength == KEY_LENGTH.s192) {
+      else if (keyLength == KeyLength.s192) {
         _log.debug("Cipher algorithm: AES, Key length: 192 bits");
         return DeriveKey.cmac192(seed);
       }
-      else if (keyLength == KEY_LENGTH.s256) {
+      else if (keyLength == KeyLength.s256) {
         _log.debug("Cipher algorithm: AES, Key length: 256 bits");
         return DeriveKey.cmac256(seed);
       }
@@ -481,7 +460,7 @@ class PACE {
         throw PACEError("Key length is not supported");
       }
     }
-    else if (cipherAlgorithm == CipherAlgorithm.DESede) {
+    else if (cipherAlgorithm == CipherAlgorithm.deSede) {
       _log.debug("Cipher algorithm: DESede.");
       return DeriveKey.desEDE(seed, paceMode: false);
     }
@@ -491,9 +470,9 @@ class PACE {
     }
   }
 
-  static Uint8List cacluate_K_PI_Key121({required  OIEPaceProtocol paceProtocol, required Uint8List seed}){
+  static Uint8List calculateKPiKey121({required  OIEPaceProtocol paceProtocol, required Uint8List seed}){
     //we need K_pi to decrypt nonce
-    KEY_LENGTH keyLength = paceProtocol.keyLength;
+    KeyLength keyLength = paceProtocol.keyLength;
     CipherAlgorithm cipherAlgorithm = paceProtocol.cipherAlgoritm;
 
     _log.debug("Calculating K-pi key ...");
@@ -501,16 +480,16 @@ class PACE {
         "Key length: $keyLength, "
         "Cipher algorithm: $cipherAlgorithm");
 
-    if (cipherAlgorithm == CipherAlgorithm.AES) {
-      if (keyLength == KEY_LENGTH.s128) {
+    if (cipherAlgorithm == CipherAlgorithm.aes) {
+      if (keyLength == KeyLength.s128) {
         _log.debug("Cipher algorithm: AES, Key length: 128 bits");
         return DeriveKey.cmac128(seed);
       }
-      else if (keyLength == KEY_LENGTH.s192) {
+      else if (keyLength == KeyLength.s192) {
         _log.debug("Cipher algorithm: AES, Key length: 192 bits");
         return DeriveKey.cmac192(seed);
       }
-      else if (keyLength == KEY_LENGTH.s256) {
+      else if (keyLength == KeyLength.s256) {
         _log.debug("Cipher algorithm: AES, Key length: 256 bits");
         return DeriveKey.cmac256(seed);
       }
@@ -519,7 +498,7 @@ class PACE {
         throw PACEError("Key length is not supported");
       }
     }
-    else if (cipherAlgorithm == CipherAlgorithm.DESede) {
+    else if (cipherAlgorithm == CipherAlgorithm.deSede) {
       _log.debug("Cipher algorithm: DESede.");
       return DeriveKey.desEDE(seed, paceMode: false);
     }
@@ -532,7 +511,7 @@ class PACE {
   static Uint8List cacluateAuthToken({required  OIEPaceProtocol paceProtocol,
                                       required Uint8List inputData,
                                       required Uint8List macKey}){
-    KEY_LENGTH keyLength = paceProtocol.keyLength;
+    KeyLength keyLength = paceProtocol.keyLength;
     CipherAlgorithm cipherAlgorithm = paceProtocol.cipherAlgoritm;
 
     _log.debug("Calculating Auth token ...");
@@ -542,14 +521,14 @@ class PACE {
         "Mac key length: ${macKey.length}"
         "Mac key: ${macKey.hex()}");
 
-    if (cipherAlgorithm == CipherAlgorithm.AES) {
+    if (cipherAlgorithm == CipherAlgorithm.aes) {
       _log.debug("Cipher algorithm: AES.");
       AESCipher aesCipher = AESChiperSelector.getChiper(size: keyLength);
       Uint8List computedAuthToken = aesCipher.calculateCMAC(data: inputData, key: macKey);
       _log.sdVerbose("Computed auth token: ${computedAuthToken.hex()}");
       return computedAuthToken;
     }
-    else if (cipherAlgorithm == CipherAlgorithm.DESede) {
+    else if (cipherAlgorithm == CipherAlgorithm.deSede) {
       _log.debug("Cipher algorithm: DESede.");
       var computedAuthToken = ISO9797.macAlg3(macKey, inputData); //padding included:)
       _log.sdVerbose("Computed auth token: ${computedAuthToken.hex()}");
@@ -568,28 +547,28 @@ class PACE {
     {
       _log.debug("PACE.decryptNonce; Decrypting nonce ...");
       _log.sdVerbose("PACE.decryptNonce; Nonce: ${nonce.hex()}, "
-                     "Pace protocol: ${paceProtocol.toString()}");
-      _log.sdVerbose("PACE.decryptNonce; Access key: ${accessKey.toString()}");
+                     "Pace protocol: $paceProtocol");
+      _log.sdVerbose("PACE.decryptNonce; Access key: $accessKey");
 
       CipherAlgorithm cipherAlgo = paceProtocol.cipherAlgoritm;
-      KEY_LENGTH keyLength = paceProtocol.keyLength;
+      KeyLength keyLength = paceProtocol.keyLength;
 
-      Uint8List k_pi = accessKey.Kpi(cipherAlgo, keyLength);
+      Uint8List kPi = accessKey.kpi(cipherAlgo, keyLength);
       //Uint8List k_pi = cacluate_K_PI_Key(paceProtocol: paceProtocol, seed: key);
-      _log.sdVerbose("PACE.decryptNonce; K-pi: ${k_pi.hex()}");
+      _log.sdVerbose("PACE.decryptNonce; K-pi: ${kPi.hex()}");
 
-      if (cipherAlgo == CipherAlgorithm.AES){
+      if (cipherAlgo == CipherAlgorithm.aes){
         _log.debug("PACE.decryptNonce; Cipher algorithm: AES");
         AESCipher aesCipher = AESChiperSelector.getChiper(size: keyLength);
-        Uint8List decryptedNonce = aesCipher.decrypt(data: nonce, key: k_pi);
+        Uint8List decryptedNonce = aesCipher.decrypt(data: nonce, key: kPi);
         _log.sdVerbose("PACE.decryptNonce; Decrypted nonce: ${decryptedNonce.hex()}");
         return decryptedNonce;
       }
-      else if (cipherAlgo == CipherAlgorithm.DESede){
+      else if (cipherAlgo == CipherAlgorithm.deSede){
         _log.debug("PACE.decryptNonce; Cipher algorithm: DESede");
         /*key iv data*/
         Uint8List decryptedNonce = DESedeDecrypt(edata: nonce,
-                                                key: k_pi,
+                                                key: kPi,
                                                 iv: Uint8List(8));
         _log.sdVerbose("PACE.decryptNonce; Decrypted nonce: ${decryptedNonce.hex()}");
         return decryptedNonce;
@@ -614,7 +593,7 @@ class PACE {
       _log.sdVerbose("PACE >ECDH< key establishment (from step 2 to step 4); "
                      "Decrypted nonce: ${nonce.hex()}, "
                      "Pace domain parameter id(int): $paceDomainParameterId, "
-                     "Pace protocol: ${paceProtocol.toString()}");
+                     "Pace protocol: $paceProtocol");
 
       ECDHPace? domainParameter;
       PublicKeyPACEeCDH? publicICCenvelope;
@@ -656,7 +635,7 @@ class PACE {
         ECPoint generatorPoint = domainParameter.getMappedGenerator(otherPubKey: publicICCkey,
                                            nonce: nonce);
 
-        _log.sdVerbose("Generator point: ${ECDHPace.ecPointToList(point: generatorPoint).toString()}");
+        _log.sdVerbose("Generator point: ${ECDHPace.ecPointToList(point: generatorPoint)}");
         domainParameter.generateKeyPairWithCustomGenerator(mappedGenerator: generatorPoint);
 
         //get public key
@@ -677,7 +656,7 @@ class PACE {
             tokenAgreementAlgorithm: paceProtocol.tokenAgreementAlgorithm);
         ephemeralPublicICCenvelope = apduStep2Pace.public as PublicKeyPACEeCDH;
         _log.debug("PACE step 3 response from ICC is valid");
-        _log.sdVerbose("Ephemeral public ICC key: ${ephemeralPublicICCenvelope.toString()}");
+        _log.sdVerbose("Ephemeral public ICC key: $ephemeralPublicICCenvelope");
       }on Exception catch (e) {
         _log.error("PACE(3); Failed: $e");
         throw PACEError("PACE(3); Failed: $e");
@@ -687,7 +666,7 @@ class PACE {
         _log.debug("Starting PACE step 4 ...");
         ECPublicKey ephemeralPublicICCkey = domainParameter.transformPublic(pubKey: ephemeralPublicICCenvelope);
         _log.debug("Epehemeral public key is successfully transformed");
-        _log.sdVerbose("Ephemeral public ICC key: ${ ECDHPace.ecPointToList(point: ephemeralPublicICCkey.Q!).toString()}");
+        _log.sdVerbose("Ephemeral public ICC key: ${ ECDHPace.ecPointToList(point: ephemeralPublicICCkey.Q!)}");
         ECPoint ephemeralSharedSecretKey =
           domainParameter.getEphemeralSharedSecret(otherEphemeralPubKey: ephemeralPublicICCkey);
 
@@ -747,15 +726,15 @@ class PACE {
         _log.debug("Finished PACE SM key establishment");
         _log.debug("Setting up SM session ...");
         CipherAlgorithm cipherAlgo = paceProtocol.cipherAlgoritm;
-        if (cipherAlgo == CipherAlgorithm.AES) {
+        if (cipherAlgo == CipherAlgorithm.aes) {
           _log.debug("PACE; Cipher algorithm: AES");
-          icc.sm = MrtdSM(AES_SMCipher(encKey,
+          icc.sm = MrtdSM(AesSmCipher(encKey,
                                       macKey,
-                                      size: paceProtocol.keyLength), AES_SSC());
+                                      size: paceProtocol.keyLength), AesSSC());
         }
-        else if (cipherAlgo == CipherAlgorithm.DESede) {
+        else if (cipherAlgo == CipherAlgorithm.deSede) {
           _log.debug("PACE; Cipher algorithm: DESede");
-          icc.sm = MrtdSM(DES_SMCipher(encKey, macKey), DESede_PACE_SSC());
+          icc.sm = MrtdSM(DES_SMCipher(encKey, macKey), DESedePaceSSC());
         }
         else {
           _log.error("PACE; Cipher algorithm is not supported");
@@ -784,7 +763,7 @@ class PACE {
       _log.sdVerbose("PACE >DH< key establishment (from step 2 to step 4); "
           "Decrypted nonce: ${nonce.hex()}, "
           "Pace domain parameter id(int): $paceDomainParameterId, "
-          "Pace protocol: ${paceProtocol.toString()}");
+          "Pace protocol: $paceProtocol");
 
       DHPace? domainParameter;
       PublicKeyPACEdH? publicICCenvelope;
@@ -822,7 +801,7 @@ class PACE {
 
       try {
         _log.debug("Starting PACE step 3 ...");
-        _log.debug("Public ICC Envelope: ${publicICCenvelope.toString()}");
+        _log.debug("Public ICC Envelope: $publicICCenvelope");
         Uint8List generatorPoint = domainParameter.getMappedGenerator(
                                           otherPubKey: publicICCenvelope.toRelavantBytes(),
                                           nonce: nonce);
@@ -849,7 +828,7 @@ class PACE {
             tokenAgreementAlgorithm: paceProtocol.tokenAgreementAlgorithm);
         ephemeralPublicICCenvelope = apduStep2Pace.public as PublicKeyPACEdH;
         _log.debug("PACE step 3 response from ICC is valid");
-        _log.sdVerbose("Ephemeral public ICC key: ${ephemeralPublicICCenvelope.toString()}");
+        _log.sdVerbose("Ephemeral public ICC key: $ephemeralPublicICCenvelope");
       }on Exception catch (e) {
         _log.error("PACE(3); Failed: $e");
         throw PACEError("PACE(3); Failed: $e");
@@ -857,7 +836,7 @@ class PACE {
 
       try {
         _log.debug("Starting PACE step 4 ...");
-        _log.debug("Ephemeral public ICC envelope: ${ephemeralPublicICCenvelope.toString()}");
+        _log.debug("Ephemeral public ICC envelope: $ephemeralPublicICCenvelope");
         BigInt ephemeralSharedSecretKey =
         domainParameter.getEphemeralSharedSecret(otherEphemeralPubKey: ephemeralPublicICCenvelope.toRelavantBytes());
 
@@ -918,15 +897,15 @@ class PACE {
         _log.debug("Finished PACE SM key establishment");
         _log.debug("Setting up SM session ...");
         CipherAlgorithm cipherAlgo = paceProtocol.cipherAlgoritm;
-        if (cipherAlgo == CipherAlgorithm.AES) {
+        if (cipherAlgo == CipherAlgorithm.aes) {
           _log.debug("PACE; Cipher algorithm: AES");
-          icc.sm = MrtdSM(AES_SMCipher(encKey,
+          icc.sm = MrtdSM(AesSmCipher(encKey,
               macKey,
-              size: paceProtocol.keyLength), AES_SSC());
+              size: paceProtocol.keyLength), AesSSC());
         }
-        else if (cipherAlgo == CipherAlgorithm.DESede) {
+        else if (cipherAlgo == CipherAlgorithm.deSede) {
           _log.debug("PACE; Cipher algorithm: DESede");
-          icc.sm = MrtdSM(DES_SMCipher(encKey, macKey), DESede_PACE_SSC());
+          icc.sm = MrtdSM(DES_SMCipher(encKey, macKey), DESedePaceSSC());
         }
         else {
           _log.error("PACE; Cipher algorithm is not supported");
@@ -966,7 +945,7 @@ class PACE {
         throw PACEError("PACE domain parameter is not supported");
       }
 
-      _log.sdVerbose("Access key: ${accessKey.toString()}");
+      _log.sdVerbose("Access key: $accessKey");
 
       OIEPaceProtocol paceProtocol = efCardAccess.paceInfo!.protocol;
       _log.debug("Protocol: $paceProtocol");
@@ -981,11 +960,11 @@ class PACE {
       //step 0
       Uint8List step0data = generateAuthenticationTemplateForMutualAuthenticationData(
           cryptographicMechanism: Uint8List.fromList(paceProtocol.identifier),
-          paceRefType: accessKey.PACE_REF_KEY_TAG);
+          paceRefType: accessKey.paceRefKeyTag);
       try {
         final step0Response = await icc.setAT(data: step0data);
         //here the response is always 9000, otherwise exception is thrown
-        _log.finest("ICC response: ${step0Response}");
+        _log.finest("ICC response: $step0Response");
         _log.fine("Got PACE step 0 SUCCESSFUL response from ICC");
         _log.debug("PACE step 0 response from ICC is valid");
       }
@@ -997,7 +976,7 @@ class PACE {
 
       //step 1
       try {
-          await Future.delayed(Duration(milliseconds: 1000));
+          await Future.delayed(const Duration(milliseconds: 1000));
           Uint8List step1data = generateGeneralAuthenticateDataStep1();
           final step1Response = await icc.generalAuthenticatePACEstep1(data: step1data);
           //here the response is always 9000, otherwise exception is thrown
@@ -1019,14 +998,14 @@ class PACE {
         }
 
       //step 2, 3 and 4
-        if (paceProtocol.tokenAgreementAlgorithm == TOKEN_AGREEMENT_ALGO.ECDH){
+        if (paceProtocol.tokenAgreementAlgorithm == TokenAgreementAlgo.ecdh){
           _log.debug("Going to ECDH key establishment (on step 2, 3 and 4)");
           await ecdh(icc: icc,
                      nonce: decryptedNonce,
                      paceDomainParameterId: paceDomainParameterId,
                      paceProtocol: paceProtocol);
         }
-        else if (paceProtocol.tokenAgreementAlgorithm == TOKEN_AGREEMENT_ALGO.DH) {
+        else if (paceProtocol.tokenAgreementAlgorithm == TokenAgreementAlgo.dh) {
           _log.debug("Going to DH key establishment (on step 2, 3 and 4)");
           await dh(icc: icc,
                    nonce: decryptedNonce,

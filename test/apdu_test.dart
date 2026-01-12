@@ -1,5 +1,7 @@
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 @Tags(['iso7816'])
+library;
+
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';

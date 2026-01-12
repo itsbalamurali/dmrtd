@@ -1,5 +1,5 @@
+import "dart:typed_data";
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
-import 'dart:typed_data';
 import 'package:meta/meta.dart';
 import 'package:dmrtd/extensions.dart';
 
@@ -22,7 +22,7 @@ class DgTag {
 
 abstract class DataGroup extends ElementaryFile {
   int get tag; // TLV tag
-  DataGroup.fromBytes(Uint8List data) : super.fromBytes(data);
+  DataGroup.fromBytes(super.data) : super.fromBytes();
 
   @override
   void parse(Uint8List content) {

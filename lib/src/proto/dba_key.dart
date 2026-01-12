@@ -5,14 +5,12 @@ import 'package:dmrtd/extensions.dart';
 import 'package:logging/logging.dart';
 
 import '../crypto/kdf.dart';
-import '../lds/asn1ObjectIdentifiers.dart';
+import '../lds/asn1_object_identifiers.dart';
 import '../lds/mrz.dart';
-import '../extension/datetime_apis.dart';
-import '../extension/string_apis.dart';
 import 'access_key.dart';
 
-const SEED_LEN_BAC = 16;
-const SEED_LEN_PACE = 20; //uncut
+const seedLenBac = 16;
+const seedLenPace = 20; //uncut
 
 
 /// Class defines Document Basic Access Keys as specified in section 9.7.2 of doc ICAO 9303 p11
@@ -22,7 +20,7 @@ class DBAKey extends AccessKey {
 
   // described in ICAO 9303 p11 - 4.4.4.1 MSE:Set AT - Reference of a public key / secret key
   @override
-  int PACE_REF_KEY_TAG = 0x01; //MRZ
+  int paceRefKeyTag = 0x01; //MRZ
 
   late String _mrtdNum;
   late String _dob;
@@ -36,7 +34,7 @@ class DBAKey extends AccessKey {
     _mrtdNum = mrtdNumber;
     _dob     = dateOfBirth.formatYYMMDD();
     _doe     = dateOfExpiry.formatYYMMDD();
-    seedLen  = paceMode ? SEED_LEN_PACE : SEED_LEN_BAC;
+    seedLen  = paceMode ? seedLenPace : seedLenBac;
   }
 
   /// Constructs [DBAKey] from [mrz].
@@ -55,22 +53,23 @@ class DBAKey extends AccessKey {
   }
 
   /// Returns K-pi [kpi] to be used in PACE protocol.
-  Uint8List Kpi(CipherAlgorithm cipherAlgorithm, KEY_LENGTH keyLength){
+  @override
+  Uint8List kpi(CipherAlgorithm cipherAlgorithm, KeyLength keyLength){
     _log.debug("Calculating K-pi key ...");
     _log.sdDebug("Seed: ${keySeed.hex()}, "
         "Key length: $keyLength, "
         "Cipher algorithm: $cipherAlgorithm");
 
-    if (cipherAlgorithm == CipherAlgorithm.DESede){
+    if (cipherAlgorithm == CipherAlgorithm.deSede){
       return DeriveKey.desEDE(keySeed, paceMode: true);
     }
-    else if (cipherAlgorithm == CipherAlgorithm.AES && keyLength == KEY_LENGTH.s128) {
+    else if (cipherAlgorithm == CipherAlgorithm.aes && keyLength == KeyLength.s128) {
       return DeriveKey.aes128(keySeed, paceMode: true);
     }
-    else if (cipherAlgorithm == CipherAlgorithm.AES && keyLength == KEY_LENGTH.s192) {
+    else if (cipherAlgorithm == CipherAlgorithm.aes && keyLength == KeyLength.s192) {
       return DeriveKey.aes192(keySeed, paceMode: true);
     }
-    else if (cipherAlgorithm == CipherAlgorithm.AES && keyLength == KEY_LENGTH.s256) {
+    else if (cipherAlgorithm == CipherAlgorithm.aes && keyLength == KeyLength.s256) {
       return DeriveKey.aes256(keySeed, paceMode: true);
     }
     else {
@@ -90,7 +89,7 @@ class DBAKey extends AccessKey {
       final kmrz = "$paddedMrtdNum$cdn$_dob$cdb$_doe$cde";
       final hash = sha1.convert(kmrz.codeUnits);
       //do not cut seed for PACE
-      _cachedSeed = hash.bytes.sublist(0, seedLen) as Uint8List?;
+      _cachedSeed = Uint8List.fromList(hash.bytes.sublist(0, seedLen));
     }
     return _cachedSeed!;
   }
@@ -109,7 +108,7 @@ class DBAKey extends AccessKey {
   String toString() {
     _log.warning("DBAKeys.toString() called. This is very sensitive data. Do not use in production!");
     return "DBAKeys{mrtdNumber: $_mrtdNum, dateOfBirth: $_dob, dateOfExpiry: $_doe}. "
-        "Is paceMode: ${seedLen == SEED_LEN_PACE}, "
+        "Is paceMode: ${seedLen == seedLenPace}, "
         "Key seed: ${keySeed.hex()}, "
         "Enc key: ${encKey.hex()}, "
         "Mac key: ${macKey.hex()}.";

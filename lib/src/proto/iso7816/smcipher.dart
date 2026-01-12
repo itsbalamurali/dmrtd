@@ -1,6 +1,6 @@
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 import 'dart:typed_data';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 
 import '../ssc.dart';
 

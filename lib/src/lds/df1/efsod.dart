@@ -1,8 +1,8 @@
+import "dart:typed_data";
 //  Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 // ignore_for_file: constant_identifier_names
 
 import 'dart:core';
-import 'dart:typed_data';
 
 import '../ef.dart';
 
@@ -11,7 +11,7 @@ class EfSOD extends ElementaryFile {
   static const SFI = 0x1D;
   static const TAG = 0x77;
 
-  EfSOD.fromBytes(Uint8List data) : super.fromBytes(data);
+  EfSOD.fromBytes(super.data) : super.fromBytes();
 
   @override
   int get fid => FID;

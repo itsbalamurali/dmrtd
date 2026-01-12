@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 
 
@@ -21,29 +20,26 @@ class DataRow {
   late int length;
   late Uint8List value;
 
-  DataRow({required int tag, required Uint8List value}) {
-    this.tag = tag;
-    this.value = value;
-    // Calculate the length of `value` and convert it to a hexadecimal string.
-    this.length = value != null ? value.length : 0;
+  DataRow({required this.tag, required this.value}) {
+    // Calculate the length of `value`.
+    length = value.length;
   }
 
   //convert all members to a hexadecimal Uint8List
   Uint8List toList() {
     // Create a Uint8List with a length of 4 + length of `value`.
-    final bytes = value != null ? Uint8List(2 + value.length) : Uint8List(2);
+    final bytes = Uint8List(2 + value.length);
     bytes[0] = tag;
     bytes[1] = length;
     // Set the third and fourth bytes to `value`.
-    if (value != null)
-      bytes.setRange(2, 2 + value.length, value);
+    bytes.setRange(2, 2 + value.length, value);
     return bytes;
   }
 
   //print Hexadecimal Uint8List
   String printHex() {
-    Uint8List bytes = this.toList();
-    return bytes.map((byte) => '0x' + byte.toRadixString(16).padLeft(2, '0') + " ").join();
+    Uint8List bytes = toList();
+    return bytes.map((byte) => '0x${byte.toRadixString(16).padLeft(2, '0')} ').join();
   }
 }
 
@@ -87,5 +83,3 @@ class DataSet {
   }
 
 }
-
-

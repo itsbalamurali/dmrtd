@@ -1,9 +1,9 @@
+import "dart:typed_data";
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 // ignore_for_file: constant_identifier_names
 
 import 'dart:convert';
 import 'dart:core';
-import 'dart:typed_data';
 import 'package:dmrtd/extensions.dart';
 
 import 'package:dmrtd/src/lds/tlv.dart';
@@ -53,7 +53,7 @@ class EfDG11 extends DataGroup {
   String? _title;
   String? _personalSummary;
   Uint8List? _proofOfCitizenship;
-  var _otherValidTDNumbers = <String>[];
+  final _otherValidTDNumbers = <String>[];
   String? _custodyInformation;
 
   String? get nameOfHolder => _nameOfHolder;
@@ -65,12 +65,12 @@ class EfDG11 extends DataGroup {
   String? get telephone => _telephone;
   String? get profession => _profession;
   String? get title => _title;
-  String? get ersonalSummary => _personalSummary;
+  String? get personalSummary => _personalSummary;
   Uint8List? get proofOfCitizenship => _proofOfCitizenship;
   List<String> get otherValidTDNumbers => _otherValidTDNumbers;
   String? get custodyInformation => _custodyInformation;
 
-  EfDG11.fromBytes(Uint8List data) : super.fromBytes(data);
+  EfDG11.fromBytes(super.data) : super.fromBytes();
 
   @override
   int get fid => FID;

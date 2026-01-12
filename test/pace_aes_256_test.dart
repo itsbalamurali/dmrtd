@@ -4,22 +4,22 @@ import 'package:test/test.dart';
 import 'package:dmrtd/extensions.dart';
 
 import 'package:dmrtd/src/proto/pace.dart';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 import 'package:dmrtd/src/proto/access_key.dart';
 import 'package:dmrtd/src/crypto/aes.dart';
 
 class _DummyAccessKey extends AccessKey {
   @override
-  int PACE_REF_KEY_TAG = 0x00;
+  int paceRefKeyTag = 0x00;
 
   final Uint8List _kpi;
   _DummyAccessKey(this._kpi);
 
   @override
-  Uint8List Kpi(CipherAlgorithm cipherAlgorithm, KEY_LENGTH keyLength) => _kpi;
+  Uint8List kpi(CipherAlgorithm cipherAlgorithm, KeyLength keyLength) => _kpi;
 
   @override
-  String toString() => 'DummyAccessKey{Kpi:${_kpi.hex()}}';
+  String toString() => 'DummyAccessKey{kpi:${_kpi.hex()}}';
 }
 
 void main() {
@@ -33,7 +33,7 @@ void main() {
             .parseHex();
     final nonce = 'A1A2A3A4A5A6A7A8A9AAABACADAEAFB0'.parseHex();
 
-    final aes = AESChiperSelector.getChiper(size: KEY_LENGTH.s256);
+    final aes = AESChiperSelector.getChiper(size: KeyLength.s256);
     final encrypted = aes.encrypt(data: nonce, key: kpi);
 
     final accessKey = _DummyAccessKey(kpi);

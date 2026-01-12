@@ -3,22 +3,22 @@
 
 import 'dart:typed_data';
 import 'package:dmrtd/extensions.dart';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 import 'package:logging/logging.dart';
 import 'ssc.dart';
 import 'iso7816/smcipher.dart';
 import '../crypto/aes.dart';
 
-class AES_SMCipher implements SMCipher {
-  static final _log = Logger("AES_SMCipher");
+class AesSmCipher implements SMCipher {
+  static final _log = Logger("AesSmCipher");
   @override
-  CipherAlgorithm type = CipherAlgorithm.AES;
+  CipherAlgorithm type = CipherAlgorithm.aes;
 
-  Uint8List KSenc;
-  Uint8List KSmac;
+  Uint8List ksEnc;
+  Uint8List ksMac;
   AESCipher cipher;
 
-  AES_SMCipher(this.KSenc, this.KSmac, {required KEY_LENGTH size}):
+  AesSmCipher(this.ksEnc, this.ksMac, {required KeyLength size}):
         cipher = AESCipher(size: size);
 
   @override
@@ -27,18 +27,19 @@ class AES_SMCipher implements SMCipher {
   @override
   Uint8List encrypt(Uint8List data, {SSC? ssc}) {
     _log.debug ("encrypt: data size: ${data.length}, ssc: ${ssc?.toBytes().hex()}");
-    _log.sdVerbose("encrypt: data: ${data.hex()}, KSenc: ${KSenc.hex()}");
-    if (ssc == null)
+    _log.sdVerbose("encrypt: data: ${data.hex()}, ksEnc: ${ksEnc.hex()}");
+    if (ssc == null) {
       throw Exception("PACE_SMCipher_AES.encrypt: SSC should not be null");
+    }
 
-    //IV = E(KSenc, SCC)
-    _log.sdDebug("Encrypting IV with KSenc: ${KSenc.hex()}, ssc: ${ssc.toBytes().hex()}");
-    Uint8List iv = cipher.encrypt(data: ssc.toBytes(), key: KSenc, mode: BLOCK_CIPHER_MODE.ECB);
+    //IV = E(ksEnc, SCC)
+    _log.sdDebug("Encrypting IV with ksEnc: ${ksEnc.hex()}, ssc: ${ssc.toBytes().hex()}");
+    Uint8List iv = cipher.encrypt(data: ssc.toBytes(), key: ksEnc, mode: BlockCipherMode.ecb);
 
     _log.sdVerbose("Encrypted IV: ${iv.hex()}");
 
-    _log.sdDebug("Encrypting data with KSenc: ${KSenc.hex()}, iv: ${iv.hex()}");
-    Uint8List encrypted = cipher.encrypt(data: data, key: KSenc,  iv: iv);
+    _log.sdDebug("Encrypting data with ksEnc: ${ksEnc.hex()}, iv: ${iv.hex()}");
+    Uint8List encrypted = cipher.encrypt(data: data, key: ksEnc,  iv: iv);
 
     _log.sdVerbose("Encrypted data: ${encrypted.hex()}");
     return encrypted;
@@ -47,14 +48,15 @@ class AES_SMCipher implements SMCipher {
   @override
   Uint8List decrypt(Uint8List data, {SSC? ssc}) {
     _log.debug ("decrypt: data size: ${data.length}, ssc: ${ssc?.toBytes().hex()}");
-    _log.sdVerbose("decrypt: data: ${data}, KSenc: ${KSenc.hex()}");
-    if (ssc == null)
+    _log.sdVerbose("decrypt: data: $data, ksEnc: ${ksEnc.hex()}");
+    if (ssc == null) {
       throw Exception("PACE_SMCipher_AES.decrypt: SSC should not be null");
+    }
 
-    //IV = E(KSenc, SCC)
-    Uint8List iv = cipher.encrypt(data: ssc.toBytes(), key: KSenc, mode: BLOCK_CIPHER_MODE.ECB);
+    //IV = E(ksEnc, SCC)
+    Uint8List iv = cipher.encrypt(data: ssc.toBytes(), key: ksEnc, mode: BlockCipherMode.ecb);
     _log.sdVerbose("IV: ${iv.hex()}");
-    Uint8List decrypted =  cipher.decrypt(data: data, key: KSenc, iv: iv);
+    Uint8List decrypted =  cipher.decrypt(data: data, key: ksEnc, iv: iv);
     _log.sdVerbose("Decrypted data: ${decrypted.hex()}");
     return decrypted;
   }
@@ -62,8 +64,8 @@ class AES_SMCipher implements SMCipher {
   @override
   Uint8List mac(Uint8List data) {
     _log.debug ("mac: data size: ${data.length}");
-    _log.sdVerbose("mac: data: ${data.hex()}, KSmac: ${KSmac.hex()}");
-    Uint8List cmac =  cipher.calculateCMAC(data: data, key: KSmac);
+    _log.sdVerbose("mac: data: ${data.hex()}, ksMac: ${ksMac.hex()}");
+    Uint8List cmac =  cipher.calculateCMAC(data: data, key: ksMac);
     _log.sdVerbose("CMAC: ${cmac.hex()}");
     return cmac;
   }

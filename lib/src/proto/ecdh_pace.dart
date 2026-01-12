@@ -6,12 +6,8 @@ import "package:dmrtd/extensions.dart";
 import "package:dmrtd/src/crypto/crypto_utils.dart";
 import "package:dmrtd/src/proto/public_key_pace.dart";
 import "package:dmrtd/src/utils.dart";
-import "package:dmrtd/src/extension/logging_apis.dart";
 import 'package:pointycastle/export.dart';
 import "package:logging/logging.dart";
-import "package:pointycastle/api.dart";
-import "package:pointycastle/ecc/api.dart";
-import "package:pointycastle/ecc/curves/secp256r1.dart";
 
 import "domain_parameter.dart";
 
@@ -82,15 +78,14 @@ class ECDHPace {
   bool get isEphemeralPublicKeySet => _pubEphemeral != null;
   ECPublicKey get ephemeralPublicKey => _pubEphemeral!;
 
-  ECDHPace({required int id, required ECDomainParameters domainParameters})
-                :domainParameters = domainParameters
+  ECDHPace({required int id, required this.domainParameters})
   {
-    if (!ICAO_DOMAIN_PARAMETERS.containsKey(id)) {
+    if (!icaoDomainParameters.containsKey(id)) {
       _log.error("Domain parameter with id $id does not exist.");
       throw Exception("Domain parameter with id $id does not exist.");
     }
 
-    selectedDomainParameter = ICAO_DOMAIN_PARAMETERS[id]!;
+    selectedDomainParameter = icaoDomainParameters[id]!;
     _log.fine(selectedDomainParameter.toString());
   }
 
@@ -137,14 +132,14 @@ class ECDHPace {
   ECPublicKey transformPublic({required PublicKeyPACEeCDH pubKey}){
     // this function is used for converting received public key (from ICC) to ECPublicKey
     _log.fine("Generating key pair (from PublicKeyPACEeCDH) for domain parameter ${selectedDomainParameter.name}.");
-    _log.sdDebug("Received public key: ${pubKey.toString()}");
+    _log.sdDebug("Received public key: $pubKey");
     ECPoint ecPoint = domainParameters.curve.createPoint(pubKey.x, pubKey.y);
     return ECPublicKey(ecPoint, domainParameters);
   }
 
   ECPoint get G => domainParameters.G;
 
-  void generateKeyPair({Uint8List? seed32byte = null}){
+  void generateKeyPair({Uint8List? seed32byte}){
     _log.fine("Generating key pair for domain parameter ${selectedDomainParameter.name}.");
     if (seed32byte == null){
       _log.debug("Seed is null. Generating random seed (32 bytes).");
@@ -170,7 +165,7 @@ class ECDHPace {
   }
 
   void generateKeyPairWithCustomGenerator({required ECPoint mappedGenerator,
-    Uint8List? seed32byte = null}) {
+    Uint8List? seed32byte}) {
     _log.fine(
         "Generating custom key pair for domain parameter "
             "${selectedDomainParameter.name}.");
@@ -190,7 +185,7 @@ class ECDHPace {
 
     ECDomainParametersImpl domainParametersCustom =
           ECDomainParametersImpl(domainParameters.domainName,
-                                  this.domainParameters.curve,
+                                  domainParameters.curve,
                                   mappedGenerator,
                                   domainParameters.n);
 
@@ -315,18 +310,18 @@ class ECDHPace {
 
     BigInt nonceBigInt = Utils.uint8ListToBigInt(nonce);
 
-    ECPoint? p = pointG! * nonceBigInt;
+    ECPoint? p = pointG * nonceBigInt;
     if (p == null) {
       _log.error("ECDHPaceCurve.getMappedGeneratorPoint; p is null. Something went wrong in PC library.");
       throw ECDHPaceError("ECDHPaceCurve.getMappedGeneratorPoint; p is null. Something went wrong in PC library.");
     }
 
-    ECPoint? mappedGenerator = p! + sharedSecret;
+    ECPoint? mappedGenerator = p + sharedSecret;
     if (mappedGenerator == null) {
       _log.error("ECDHPaceCurve.getMappedGeneratorPoint; mappedGenerator is null. Something went wrong in PC library.");
       throw ECDHPaceError("ECDHPaceCurve.getMappedGeneratorPoint; mappedGenerator is null. Something went wrong in PC library.");
     }
-    return mappedGenerator!;
+    return mappedGenerator;
   }
 }
 
@@ -381,7 +376,7 @@ class DomainParameterSelectorECDH{
   static final _log = Logger("DomainParameterSelectorECDH");
 
   static ECDHPace getDomainParameter({required int id}) {
-    if (!ICAO_DOMAIN_PARAMETERS.containsKey(id)) {
+    if (!icaoDomainParameters.containsKey(id)) {
       _log.error("Domain parameter (ECDH) with id $id does not exist.");
       throw ECDHPaceError("Domain parameter with id $id does not exist.");
     }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:dmrtd/src/extension/logging_apis.dart';
@@ -130,13 +129,14 @@ class DHpkcs3Engine {
   /// Construct an engine with the desired [DhParameterSpec]. If [privateKey] is
   /// provided, the key pair is created with the provided [privateKey],
   /// otherwise a new key pair is generated.
-  DHpkcs3Engine({required DhParameterSpec parameterSpec, BigInt? privateKey, int? seed = null}) :
+  DHpkcs3Engine({required DhParameterSpec parameterSpec, BigInt? privateKey, int? seed}) :
         _parameterSpec = parameterSpec{
-    _log.debug("Creating DH engine with parameterSpec: ${parameterSpec}");
-    if (privateKey != null)
+    _log.debug("Creating DH engine with parameterSpec: $parameterSpec");
+    if (privateKey != null) {
       createKeyPair(privateKey: privateKey);
-    else
+    } else {
       generateKeyPair(seed: seed);
+    }
 
     _log.sdVerbose("DHpkcs3Engine; Created DH engine;"
         "publicKey: ${Utils.bigIntToUint8List(bigInt:publicKey)}, "
@@ -159,7 +159,7 @@ class DHpkcs3Engine {
     //Gephemeral = (pow(g, s, p) * H) % p
     //(g.modPow(nonce, p) * H ) % p
 
-    BigInt H = this.computeSecretKey(otherPublicKey: otherPublicKey);
+    BigInt H = computeSecretKey(otherPublicKey: otherPublicKey);
     BigInt generator = (_parameterSpec.g.modPow(nonce, _parameterSpec.p) * H) % _parameterSpec.p;
 
     return generator;
@@ -176,10 +176,10 @@ class DHpkcs3Engine {
   }
 
   /// Generate [publicKey] and [privateKey] based on the [parameterSpec] of this engine
-  DhKeyPair generateKeyPair({int? seed = null}) {
+  DhKeyPair generateKeyPair({int? seed}) {
     _log.verbose("DHpkcs3Engine; Generating key pair...");
     _privateKey = generatePrivateKey(seed: seed);
-    _publicKey = generatePublicKey(privateKey: privateKey);
+    _publicKey = generatePublicKey(privateKey: _privateKey);
     return DhKeyPair(
       publicKey: _publicKey,
       privateKey: _privateKey,
@@ -187,14 +187,15 @@ class DHpkcs3Engine {
   }
 
   @protected
-  BigInt generatePrivateKey({int? seed = null}) {
+  BigInt generatePrivateKey({int? seed}) {
     _log.debug("DHpkcs3Engine.generatePrivateKey. Is seed set?: ${seed != null}");
     Random rnd;
     try {
-      if (seed != null)
+      if (seed != null) {
         rnd = Random(seed);
-      else
+      } else {
         rnd = Random.secure();
+      }
     } on UnsupportedError {
       throw DHpkcs3EngineError(
           'This platform cannot provide a cryptographically secure source of random numbers');

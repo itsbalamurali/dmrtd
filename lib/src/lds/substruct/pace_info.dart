@@ -6,7 +6,7 @@ import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
 import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/asn1/primitives/asn1_object_identifier.dart';
 
-import '../asn1ObjectIdentifiers.dart';
+import '../asn1_object_identifiers.dart';
 import "package:dmrtd/src/extension/logging_apis.dart";
 import 'package:logging/logging.dart';
 
@@ -37,7 +37,7 @@ import "package:dmrtd/src/lds/ef.dart";
 ///      parameterId INTEGER OPTIONAL
 ///}
 
-int VERSION_VALUE_CONST = 2;
+const int versionValueConst = 2;
 
 class PaceInfo {
   late OIEPaceProtocol _protocol;
@@ -61,10 +61,11 @@ class PaceInfo {
 
   PaceInfo({required ASN1Sequence content}) {
     _log.debug("PaceInfo constructor");
-    ASN1ObjectIdentifierType? protocolType = ASN1ObjectIdentifierType.instance;
+    ASN1ObjectIdentifierType protocolType = ASN1ObjectIdentifierType.instance;
     parse(content: content, protocolType: protocolType);
   }
 
+  @override
   String toString() {
     return "PaceInfo(protocol: $_protocol, version: $_version, "
         "parameterId: $_parameterId, isPaceDomainParameterSupported: $_isPaceDomainParameterSupported)";
@@ -107,9 +108,9 @@ class PaceInfo {
       _log.error("Invalid version in PaceInfo. Version is null.");
       throw EfParseError("Invalid version in PaceInfo. Version is null.");
     }
-    if (version.integer?.toInt() != VERSION_VALUE_CONST) {
-      _log.error("Invalid version in PaceInfo. Version is not equal to $VERSION_VALUE_CONST.");
-      throw EfParseError("Invalid version in PaceInfo. Version is not equal to $VERSION_VALUE_CONST.");
+    if (version.integer?.toInt() != versionValueConst) {
+      _log.error("Invalid version in PaceInfo. Version is not equal to $versionValueConst.");
+      throw EfParseError("Invalid version in PaceInfo. Version is not equal to $versionValueConst.");
     }
 
     _version = version.integer?.toInt() as int;
@@ -134,10 +135,11 @@ class PaceInfo {
 
     try {
       //check if DomainParameterSelectorEC(DH) raises exception
-      if (_protocol.tokenAgreementAlgorithm == TOKEN_AGREEMENT_ALGO.ECDH)
+      if (_protocol.tokenAgreementAlgorithm == TokenAgreementAlgo.ecdh) {
         DomainParameterSelectorECDH.getDomainParameter(id: _parameterId!);
-      else
+      } else {
         DomainParameterSelectorDH.getDomainParameter(id: _parameterId!);
+      }
 
       _isPaceDomainParameterSupported = true;
     } catch (e) {

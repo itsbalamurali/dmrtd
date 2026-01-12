@@ -6,43 +6,43 @@ extension LogApis on Logger {
   static final _sdl = Expando<bool>();
 
     /// Log message at level [Level.FINEST].
-  void trace(message, [Object? error, StackTrace? stackTrace]) =>
+  void trace(Object? message, [Object? error, StackTrace? stackTrace]) =>
     finest(message, error, stackTrace);
 
   // Log message with sensitive data at [level.FINEST] when logging of sensitive data is enabled.
-  void sdTrace(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdTrace(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.FINEST, message, error, stackTrace);
 
   /// Log message at level [Level.FINER].
-  void verbose(message, [Object? error, StackTrace? stackTrace]) =>
+  void verbose(Object? message, [Object? error, StackTrace? stackTrace]) =>
     finer(message, error, stackTrace);
 
   // Log message with sensitive data at [level.FINER] when logging of sensitive data is enabled.
-  void sdVerbose(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdVerbose(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.FINER, message, error, stackTrace);
 
   /// Log message at level [Level.FINE].
-  void debug(message, [Object? error, StackTrace? stackTrace]) =>
+  void debug(Object? message, [Object? error, StackTrace? stackTrace]) =>
     fine(message, error, stackTrace);
 
   /// Log message with sensitive data at [level.FINE] when logging of sensitive data is enabled.
-  void sdDebug(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdDebug(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.FINE, message, error, stackTrace);
 
   /// Log message with sensitive data at [level.INFO] when logging of sensitive data is enabled.
-  void sdInfo(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdInfo(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.INFO, message, error, stackTrace);
 
   /// Log message with sensitive data at [level.WARNING] when logging of sensitive data is enabled.
-  void sdWarning(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdWarning(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.WARNING, message, error, stackTrace);
 
   /// Log message at level [Level.SEVERE].
-  void error(message, [Object? error, StackTrace? stackTrace]) =>
+  void error(Object? message, [Object? error, StackTrace? stackTrace]) =>
     log(Level.SEVERE, message, error, stackTrace);
 
   /// Log message with sensitive data at [level.SEVERE] when logging of sensitive data is enabled.
-  void sdError(message, [Object? error, StackTrace? stackTrace]) =>
+  void sdError(Object? message, [Object? error, StackTrace? stackTrace]) =>
     _sdlog(Level.SEVERE, message, error, stackTrace);
 
   /// Log message with sensitive data at [level.SHOUT] when logging of sensitive data is enabled.

@@ -4,13 +4,13 @@ import 'dart:typed_data';
 import 'package:dmrtd/extensions.dart';
 import 'package:pointycastle/ecc/api.dart';
 
-import '../lds/asn1ObjectIdentifiers.dart';
+import '../lds/asn1_object_identifiers.dart';
 import '../utils.dart';
 
 abstract class PublicKeyPACE {
-  TOKEN_AGREEMENT_ALGO  algo;
+  TokenAgreementAlgo  algo;
 
-  TOKEN_AGREEMENT_ALGO get agreementAlgorithm => algo;
+  TokenAgreementAlgo get agreementAlgorithm => algo;
 
   PublicKeyPACE({required this.algo});
 
@@ -18,6 +18,7 @@ abstract class PublicKeyPACE {
 
   Uint8List toRelavantBytes();
 
+  @override
   String toString();
 }
 
@@ -27,12 +28,12 @@ class PublicKeyPACEeCDH extends PublicKeyPACE{
   PublicKeyPACEeCDH({required BigInt x, required BigInt y}):
         _x = x,
         _y = y,
-        super(algo: TOKEN_AGREEMENT_ALGO.ECDH);
+        super(algo: TokenAgreementAlgo.ecdh);
 
   PublicKeyPACEeCDH.fromECPoint({required ECPoint public}):
         _x = public.x!.toBigInteger()!,
         _y = public.y!.toBigInteger()!,
-        super(algo: TOKEN_AGREEMENT_ALGO.ECDH);
+        super(algo: TokenAgreementAlgo.ecdh);
 
   BigInt get x => _x;
   BigInt get y => _y;
@@ -48,7 +49,7 @@ class PublicKeyPACEeCDH extends PublicKeyPACE{
   PublicKeyPACEeCDH.fromHex({required Uint8List hexKey}):
         _x = Utils.uint8ListToBigInt(hexKey.sublist(0, hexKey.length ~/ 2)),
         _y = Utils.uint8ListToBigInt(hexKey.sublist(hexKey.length ~/ 2)),
-        super(algo: TOKEN_AGREEMENT_ALGO.ECDH);
+        super(algo: TokenAgreementAlgo.ecdh);
 
   @override
   Uint8List toRelavantBytes() {
@@ -65,7 +66,7 @@ class PublicKeyPACEdH extends PublicKeyPACE{
   final Uint8List _pub;
   PublicKeyPACEdH({required Uint8List pub}):
         _pub = pub,
-        super(algo: TOKEN_AGREEMENT_ALGO.DH);
+        super(algo: TokenAgreementAlgo.dh);
 
   Uint8List get pub => _pub;
 

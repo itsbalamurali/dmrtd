@@ -1,24 +1,17 @@
 //  Created by Nejc Skerjanc, copyright © 2023 ZeroPass. All rights reserved.
-import 'dart:convert';
-import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:dmrtd/extensions.dart';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
-import 'package:dmrtd/src/lds/substruct/paceCons.dart';
-import 'package:dmrtd/src/proto/can_key.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 import 'package:dmrtd/src/proto/ecdh_pace.dart';
 import 'package:dmrtd/src/proto/iso7816/iso7816.dart';
 import 'package:dmrtd/src/proto/pace.dart';
 import 'package:dmrtd/src/proto/public_key_pace.dart';
-import 'package:dmrtd/src/utils.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:test/test.dart';
 import 'package:dmrtd/src/proto/dba_key.dart';
 import 'package:dmrtd/src/proto/iso7816/command_apdu.dart';
-import 'package:dmrtd/src/extension/string_apis.dart';
-import 'package:dmrtd/src/crypto/kdf.dart';
+
 import 'package:dmrtd/src/crypto/aes.dart';
 import 'package:dmrtd/src/lds/efcard_access.dart';
 
@@ -33,7 +26,7 @@ void main(){
     final tvKeySeed  = "7e2d2a41c74ea0b38cd36f863939bfa8e9032aad".parseHex(); //changed
     final tvKenc     = "3dc4f8862f8a1570b57fefdcfec43e46".parseHex(); //changed
     final tvKmac     = "bc641c6b2fa8b5704552322007761f85".parseHex(); //changed
-    final tv_K_pi    = "89ded1b26624ec1e634c1989302849dd".parseHex(); //changed
+    final tvKpi    = "89ded1b26624ec1e634c1989302849dd".parseHex(); //changed
 
     final nonceEncypted  = "95a3a016522ee98d01e76cb6b98b42c3".parseHex();
     final nonceDecrypted = "3F00C4D39D153F2B2A214A078D899B22".parseHex();
@@ -136,8 +129,8 @@ void main(){
     expect (efCardAccess.paceInfo!.parameterId, 0x0D);
 
     // K_pi
-    var kpi = dbaKeys.Kpi(CipherAlgorithm.AES, KEY_LENGTH.s128);
-    expect(kpi, tv_K_pi);
+    var kpi = dbaKeys.kpi(CipherAlgorithm.aes, KeyLength.s128);
+    expect(kpi, tvKpi);
 
     // terminal's public key
     ECDHPace terminal = DomainParameterSelectorECDH.getDomainParameter(id: paceDomainParameterID);
@@ -157,7 +150,7 @@ void main(){
 
     Uint8List step0terminal = PACE.generateAuthenticationTemplateForMutualAuthenticationData(
         cryptographicMechanism: Uint8List.fromList(protocol.identifier),
-        paceRefType: dbaKeys.PACE_REF_KEY_TAG);
+        paceRefType: dbaKeys.paceRefKeyTag);
 
     Uint8List step0terminalAPDU =
         CommandAPDU(cla: ISO7816_CLA.NO_SM,
@@ -203,9 +196,9 @@ void main(){
     expect(ECDHPace.ecPointToList(point: terminalMappingPoint).toBytes(), Uint8List.fromList([...sharedSecretX, ...sharedSecretY]));
 
     // nonce management
-    AESCipher aesCipherNonce = AESChiperSelector.getChiper(size: KEY_LENGTH.s128);
+    AESCipher aesCipherNonce = AESChiperSelector.getChiper(size: KeyLength.s128);
     Uint8List decryptedNonceCalc = aesCipherNonce.decrypt(data: nonceEncypted, key: kpi);
-    print ("Decrypted nonce:" + decryptedNonceCalc.hex());
+    print ("Decrypted nonce:${decryptedNonceCalc.hex()}");
     expect (decryptedNonceCalc.length, 16);
     expect(decryptedNonceCalc, nonceDecrypted);
 
@@ -235,7 +228,7 @@ void main(){
 
     ResponseAPDUStep2or3Pace step2Chip= ResponseAPDUStep2or3Pace(
         generalAuthenticateStep2MsgChip);
-    step2Chip.parse(tokenAgreementAlgorithm: TOKEN_AGREEMENT_ALGO.ECDH);
+    step2Chip.parse(tokenAgreementAlgorithm: TokenAgreementAlgo.ecdh);
     expect(step2Chip.public.toBytes(), Uint8List.fromList([...chipPublicKeyX, ...chipPublicKeyY]));
 
     //
@@ -283,7 +276,7 @@ void main(){
 
     ResponseAPDUStep2or3Pace step3Chip= ResponseAPDUStep2or3Pace(
         generalAuthenticateStep3MsgChip);
-    step3Chip.parse(tokenAgreementAlgorithm: TOKEN_AGREEMENT_ALGO.ECDH);
+    step3Chip.parse(tokenAgreementAlgorithm: TokenAgreementAlgo.ecdh);
 
     print(step3Chip.public.toBytes().hex());
     print(Uint8List.fromList([...chipEphemeralPublicKeyX, ...chipEphemeralPublicKeyY]).hex());
@@ -330,7 +323,7 @@ void main(){
 
     expect(inputTokenChipforCheck, tic);
 
-    AESCipher aesCipher = AESChiperSelector.getChiper(size: KEY_LENGTH.s128);
+    AESCipher aesCipher = AESChiperSelector.getChiper(size: KeyLength.s128);
     Uint8List encryptedTByAES = aesCipher.encrypt(data:calcInputDataTTerminal, key: macKey, padding: true);
     Uint8List decryptedTByAES = aesCipher.decrypt(data:encryptedTByAES, key: macKey);
 

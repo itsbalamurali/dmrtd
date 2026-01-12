@@ -1,7 +1,7 @@
 //  Created by Nejc Skerjanc, copyright © 2023 ZeroPass. All rights reserved.
 
 import 'dart:typed_data';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 import 'package:logging/logging.dart';
 import 'package:dmrtd/extensions.dart';
 
@@ -23,7 +23,7 @@ class CanKey extends AccessKey {
   static final _log = Logger("AccessKey.CanKeys");
   // described in ICAO 9303 p11 - 4.4.4.1 MSE:Set AT - Reference of a public key / secret key
   @override
-  int PACE_REF_KEY_TAG = 0x02; //CAN
+  int paceRefKeyTag = 0x02; //CAN
 
   late Uint8List _can;
 
@@ -46,21 +46,22 @@ class CanKey extends AccessKey {
 
 
   /// Returns K-pi [kpi] to be used in PACE protocol.
-  Uint8List Kpi (CipherAlgorithm cipherAlgorithm, KEY_LENGTH keyLength){
-      if (cipherAlgorithm == CipherAlgorithm.DESede){
+  @override
+  Uint8List kpi (CipherAlgorithm cipherAlgorithm, KeyLength keyLength){
+      if (cipherAlgorithm == CipherAlgorithm.deSede){
         //_cachedSeed = KDF(sha1, _can, Int32(3)).sublist(0, seedLen);
         return DeriveKey.desEDE(_can, paceMode: true);
       }
-      else if (cipherAlgorithm == CipherAlgorithm.AES &&
-               keyLength == KEY_LENGTH.s128) {
+      else if (cipherAlgorithm == CipherAlgorithm.aes &&
+               keyLength == KeyLength.s128) {
         return DeriveKey.aes128(_can, paceMode: true);
       }
-      else if (cipherAlgorithm == CipherAlgorithm.AES &&
-                keyLength == KEY_LENGTH.s192) {
+      else if (cipherAlgorithm == CipherAlgorithm.aes &&
+                keyLength == KeyLength.s192) {
         return DeriveKey.aes192(_can, paceMode: true);
       }
-      else if (cipherAlgorithm == CipherAlgorithm.AES &&
-                keyLength == KEY_LENGTH.s256) {
+      else if (cipherAlgorithm == CipherAlgorithm.aes &&
+                keyLength == KeyLength.s256) {
         return DeriveKey.aes256(_can, paceMode: true);
       }
       else {
@@ -75,7 +76,6 @@ class CanKey extends AccessKey {
   String toString() {
     _log.warning("CanKeys.toString() called. This is very sensitive data. Do not use in production!");
     return "CanKeys; CAN: ${_can.hex()}";
-    return super.toString();
   }
 
 }

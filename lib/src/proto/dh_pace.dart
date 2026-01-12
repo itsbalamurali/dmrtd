@@ -26,7 +26,7 @@ ID - Name                 Size(bit) Type Reference
 *
 * */
 
-DhParameterSpec RFC5114_1024_MODP_160 = DhParameterSpec(
+DhParameterSpec rfc51141024Modp160 = DhParameterSpec(
     p: BigInt.parse("B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C6"
         "9A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C0"
         "13ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD70"
@@ -42,7 +42,7 @@ DhParameterSpec RFC5114_1024_MODP_160 = DhParameterSpec(
     length: 160);
 
 
-DhParameterSpec RFC5114_2048_MODP_224 = DhParameterSpec(
+DhParameterSpec rfc51142048Modp224 = DhParameterSpec(
     p: BigInt.parse("AD107E1E9123A9D0D660FAA79559C51FA20D64E5683B9FD1"
         "B54B1597B61D0A75E6FA141DF95A56DBAF9A3C407BA1DF15"
         "EB3D688A309C180E1DE6B85A1274A0A66D3F8152AD6AC212"
@@ -67,7 +67,7 @@ DhParameterSpec RFC5114_2048_MODP_224 = DhParameterSpec(
         "81BC087F2A7065B384B890D3191F2BFA", radix: 16),
     length: 224);
 
-DhParameterSpec RFC5114_2048_MODP_256 = DhParameterSpec(
+DhParameterSpec rfc51142048Modp256 = DhParameterSpec(
     p: BigInt.parse("87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F2"
         "5D2CEED4435E3B00E00DF8F1D61957D4FAF7DF4561B2AA30"
         "16C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD"
@@ -119,7 +119,7 @@ class DHPace {
 
   DHpkcs3Engine? _engine;
   DHpkcs3Engine? _engineEphemeral;
-  DhParameterSpec _domainParameters; //only for override(testing) purposes
+  final DhParameterSpec _domainParameters; //only for override(testing) purposes
 
 
   bool get isPublicKeySet => _engine != null;
@@ -131,12 +131,12 @@ class DHPace {
   DHPace({required int id, required DhParameterSpec domainParameters})
       : _domainParameters = domainParameters
   {
-    if (!ICAO_DOMAIN_PARAMETERS.containsKey(id)) {
+    if (!icaoDomainParameters.containsKey(id)) {
       _log.error("DHPace; Domain parameter with id $id does not exist.");
       throw DHPaceError("DHPace; Domain parameter with id $id does not exist.");
     }
 
-    selectedDomainParameter = ICAO_DOMAIN_PARAMETERS[id]!;
+    selectedDomainParameter = icaoDomainParameters[id]!;
     _log.fine(selectedDomainParameter.toString());
     //creating engine (private and public key will be generated with random seed)
     _engine = DHpkcs3Engine(parameterSpec: domainParameters);
@@ -147,11 +147,11 @@ class DHPace {
     _log.warning("This function is only for testing purposes. It prints private keys. Do not use in production.");
     String forReturn = "DHPace: ${selectedDomainParameter.name}: ";
     bool isAny = false;
-    if (isPublicKeySet && _engine!.privateKey != null){
+    if (isPublicKeySet){
       forReturn += " private key: ${_engine!.privateKey.toString()}";
       isAny = true;
     }
-    if (isEphemeralPublicKeySet && _engine!.privateKey != null){
+    if (isEphemeralPublicKeySet){
       forReturn += " ephemeral private key: ${_engineEphemeral!.privateKey.toString()}";
       isAny = true;
     }
@@ -182,16 +182,16 @@ class DHPace {
     return Utils.uint8ListToBigInt(pubKey.toRelavantBytes());
   }
 
-  void generateKeyPair({int? seed = null}){
+  void generateKeyPair({int? seed}){
     _log.fine("DHPace.generateKeyPair; Generating key pair for domain parameter ${selectedDomainParameter.name}.");
 
     DhKeyPair keyPair = _engine!.generateKeyPair(seed: seed);
-    _log.debug("DHPace.generateKeyPair; Generated public key: ${keyPair.toString()}");
+    _log.debug("DHPace.generateKeyPair; Generated public key: $keyPair");
     _log.sdVerbose("DHPace.generateKeyPair; Generated public/private key: ${keyPair.toStringAlsoPrivate()}");
   }
 
   void generateKeyPairWithCustomGenerator({required BigInt ephemeralGenerator,
-  int? seed = null}) {
+  int? seed}) {
     _log.fine("DHPace.generateKeyPairWithCustomGenerator; Generating custom key pair for domain parameter "
             "${selectedDomainParameter.name}.");
 
@@ -227,8 +227,8 @@ class DHPace {
       throw DHPaceError("DHPace.setEphemeralKeyPair; Ephemeral public key is null. Generate key pair first.");
     }
 
-    _log.debug("DHPace.setEphemeralKeyPair; Generated public key: ${ephemeralPublicKey}");
-    _log.sdVerbose("DHPace.setEphemeralKeyPair; Generated public/private key: ${ephemeralPublicKey}");
+    _log.debug("DHPace.setEphemeralKeyPair; Generated public key: $ephemeralPublicKey");
+    _log.sdVerbose("DHPace.setEphemeralKeyPair; Generated public/private key: $ephemeralPublicKey");
   }
 
   PublicKeyPACEdH getPubKey(){
@@ -304,24 +304,24 @@ class DHPace {
 
 class DHPaceCurve0 extends DHPace {
   DHPaceCurve0()
-      : super(id: 0, domainParameters: RFC5114_1024_MODP_160);
+      : super(id: 0, domainParameters: rfc51141024Modp160);
 }
 
 class DHPaceCurve1 extends DHPace {
   DHPaceCurve1()
-      : super(id: 1, domainParameters: RFC5114_2048_MODP_224);
+      : super(id: 1, domainParameters: rfc51142048Modp224);
 }
 
 class DHPaceCurve2 extends DHPace {
   DHPaceCurve2()
-      : super(id: 2, domainParameters: RFC5114_2048_MODP_256);
+      : super(id: 2, domainParameters: rfc51142048Modp256);
 }
 
 class DomainParameterSelectorDH{
   static final _log = Logger("DomainParameterSelectorDH");
 
   static DHPace getDomainParameter({required int id}) {
-    if (!ICAO_DOMAIN_PARAMETERS.containsKey(id)) {
+    if (!icaoDomainParameters.containsKey(id)) {
       _log.error("Domain parameter (DH) with id $id does not exist.");
       throw DHPaceError("Domain parameter with id $id does not exist.");
     }

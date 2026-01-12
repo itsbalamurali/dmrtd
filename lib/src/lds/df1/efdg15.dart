@@ -1,8 +1,7 @@
+import "dart:typed_data";
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 // ignore_for_file: constant_identifier_names
 
-import 'dart:typed_data';
-import 'dg.dart';
 import 'package:dmrtd/dmrtd.dart';
 
 class EfDG15 extends DataGroup {
@@ -13,7 +12,7 @@ class EfDG15 extends DataGroup {
   late final AAPublicKey _pubkey;
   AAPublicKey get aaPublicKey => _pubkey;
 
-  EfDG15.fromBytes(Uint8List data) : super.fromBytes(data);
+  EfDG15.fromBytes(super.data) : super.fromBytes();
 
   @override
   int get fid => FID;

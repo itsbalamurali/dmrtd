@@ -1,5 +1,4 @@
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
-library dmrtd;
 
 export 'src/com/com_provider.dart';
 export 'src/com/nfc_provider.dart';
@@ -35,4 +34,5 @@ export 'src/lds/tlv.dart';
 export 'src/passport.dart';
 
 export 'src/proto/dba_key.dart';
+export 'src/proto/can_key.dart';
 export 'src/proto/access_key.dart';

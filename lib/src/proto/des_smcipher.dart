@@ -1,6 +1,6 @@
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 import 'dart:typed_data';
-import 'package:dmrtd/src/lds/asn1ObjectIdentifiers.dart';
+import 'package:dmrtd/src/lds/asn1_object_identifiers.dart';
 
 import 'iso7816/smcipher.dart';
 import '../crypto/des.dart';
@@ -8,9 +8,9 @@ import '../crypto/iso9797.dart';
 import './ssc.dart';
 
 // ignore: camel_case_types
-class DES_SMCipher implements SMCipher{
+class DES_SMCipher implements SMCipher {
   @override
-  CipherAlgorithm type = CipherAlgorithm.DESede;
+  CipherAlgorithm type = CipherAlgorithm.deSede;
 
   Uint8List encKey;
   Uint8List macKey;

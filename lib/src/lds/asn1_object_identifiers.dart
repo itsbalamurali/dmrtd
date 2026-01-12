@@ -56,17 +56,17 @@ List<Map<String, Object>> customOIDS = [
 
 class OIEexception extends DMRTDException {
   @override
-  String exceptionName = 'OIEexception';
+  String get exceptionName => 'OIEexception';
 
-  OIEexception(message) : super(message);
+  OIEexception(super.message);
 }
 
 
 class ASN1ObjectIdentifierObjectException extends DMRTDException {
   @override
-  String exceptionName = 'ASN1ObjectIdentifierObjectException';
+  String get exceptionName => 'ASN1ObjectIdentifierObjectException';
 
-  ASN1ObjectIdentifierObjectException(message) : super(message);
+  ASN1ObjectIdentifierObjectException(super.message);
 }
 
 // Object Identifier Element
@@ -127,10 +127,12 @@ class OIE {
       identifier = item['identifier'] as List<int>;
     }
 
+    @override
     String toString() {
       return 'OIE: $identifierString, $readableName, $identifier';
     }
 
+    @override
     bool operator ==(Object other) {
       if (other is OIE) {
         //return identifierString == other.identifierString &&
@@ -141,159 +143,162 @@ class OIE {
       return false;
     }
 
+    @override
+    int get hashCode => Object.hashAll(identifier);
+
     bool compareOnlyIdentifier({required List<int> identifier}) {
-      Function eq = const ListEquality().equals;
-      return eq(this.identifier, identifier);
+      const eq = ListEquality();
+      return eq.equals(this.identifier, identifier);
     }
 }
 
 enum CipherAlgorithm {
-  DESede,
-  AES,
+  deSede,
+  aes,
 }
 
 //usage:
 // var x = IV_SIZE.s128;
 // print (x.value);
-enum KEY_LENGTH {
+enum KeyLength {
   s128(16),
   s192(24),
   s256(32);
 
-  const KEY_LENGTH(this.value);
+  const KeyLength(this.value);
   final num value;
 }
 
-enum TOKEN_AGREEMENT_ALGO{
-  DH,
-  ECDH,
+enum TokenAgreementAlgo{
+  dh,
+  ecdh,
 }
 
-enum MAPPING_TYPE{
-  GM,
-  IM,
-  CAM,
+enum MappingType{
+  gm,
+  im,
+  cam,
 }
 
 class OIEPaceProtocol extends OIE {
 
   CipherAlgorithm? _cipherAlgorithm;
-  KEY_LENGTH? _keyLength;
-  TOKEN_AGREEMENT_ALGO? _tokenAgreementAlgorithm;
-  MAPPING_TYPE? _mappingType;
+  KeyLength? _keyLength;
+  TokenAgreementAlgo? _tokenAgreementAlgorithm;
+  MappingType? _mappingType;
 
 
-  OIEPaceProtocol({required String identifierString,
-                   required String readableName,
-                   required List<int> identifier}) :
-        super(identifierString: identifierString.toUpperCase(),
-          readableName: readableName.toUpperCase(),
-          identifier: identifier){
+  OIEPaceProtocol({required super.identifierString,
+                   required super.readableName,
+                   required super.identifier}) :
+        super(){
+      identifierString = identifierString.toUpperCase();
+      readableName = readableName.toUpperCase();
       setParams();
   }
 
-  OIEPaceProtocol.fromMap({required Map<String, Object> item}):
-                            super.fromMap(item: item){
+  OIEPaceProtocol.fromMap({required super.item}):
+                            super.fromMap(){
     setParams();
   }
 
   void setParams(){
     switch (readableName.toUpperCase()) {
       case 'ID-PACE-DH-GM-3DES-CBC-CBC':
-        _cipherAlgorithm = CipherAlgorithm.DESede;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.deSede;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-DH-GM-AES-CBC-CMAC-128':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-DH-GM-AES-CBC-CMAC-192':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s192;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s192;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-DH-GM-AES-CBC-CMAC-256':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s256;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s256;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.gm;
         break;
-      case 'id-PACE-DH-IM-3DES-CBC-CBC':
-        _cipherAlgorithm = CipherAlgorithm.DESede;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.IM;
+      case 'ID-PACE-DH-IM-3DES-CBC-CBC':
+        _cipherAlgorithm = CipherAlgorithm.deSede;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-DH-IM-AES-CBC-CMAC-128':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-DH-IM-AES-CBC-CMAC-192':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s192;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s192;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-DH-IM-AES-CBC-CMAC-256':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s256;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.DH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s256;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.dh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-ECDH-GM-3DES-CBC-CBC':
-        _cipherAlgorithm = CipherAlgorithm.DESede;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.deSede;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-ECDH-GM-AES-CBC-CMAC-128':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-ECDH-GM-AES-CBC-CMAC-192':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s192;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s192;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-ECDH-GM-AES-CBC-CMAC-256':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s256;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.GM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s256;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.gm;
         break;
       case 'ID-PACE-ECDH-IM-3DES-CBC-CBC':
-        _cipherAlgorithm = CipherAlgorithm.DESede;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.deSede;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-ECDH-IM-AES-CBC-CMAC-128':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s128;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s128;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-ECDH-IM-AES-CBC-CMAC-192':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s192;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s192;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.im;
         break;
       case 'ID-PACE-ECDH-IM-AES-CBC-CMAC-256':
-        _cipherAlgorithm = CipherAlgorithm.AES;
-        _keyLength = KEY_LENGTH.s256;
-        _tokenAgreementAlgorithm = TOKEN_AGREEMENT_ALGO.ECDH;
-        _mappingType = MAPPING_TYPE.IM;
+        _cipherAlgorithm = CipherAlgorithm.aes;
+        _keyLength = KeyLength.s256;
+        _tokenAgreementAlgorithm = TokenAgreementAlgo.ecdh;
+        _mappingType = MappingType.im;
         break;
 
       case 'id-PACE-ECDH-CAM-AES-CBC-CMAC-128':
@@ -316,27 +321,27 @@ class OIEPaceProtocol extends OIE {
 
     _log.sdDebug("OIEPaceProtocol; identifierString: $identifierString, "
         "CipherAlgorithm: $_cipherAlgorithm, "
-        "KEY_LENGTH: $_keyLength, "
-        "TOKEN_AGREEMENT_ALGO: $_tokenAgreementAlgorithm, "
-        "MAPPING_TYPE: $_mappingType"
+        "KeyLength: $_keyLength, "
+        "TokenAgreementAlgo: $_tokenAgreementAlgorithm, "
+        "MappingType: $_mappingType"
     );
   }
 
   CipherAlgorithm get cipherAlgoritm => _cipherAlgorithm!;
 
-  KEY_LENGTH get keyLength => _keyLength!;
+  KeyLength get keyLength => _keyLength!;
 
-  TOKEN_AGREEMENT_ALGO get tokenAgreementAlgorithm => _tokenAgreementAlgorithm!;
+  TokenAgreementAlgo get tokenAgreementAlgorithm => _tokenAgreementAlgorithm!;
 
-  MAPPING_TYPE get mappingType => _mappingType!;
+  MappingType get mappingType => _mappingType!;
 
   @override
   String toString() {
     return 'OIEPaceProtocol: $identifierString, $readableName, $identifier, '
         "CipherAlgorithm: $_cipherAlgorithm, "
-        "KEY_LENGTH: $_keyLength, "
-        "TOKEN_AGREEMENT_ALGO: $_tokenAgreementAlgorithm, "
-        "MAPPING_TYPE: $_mappingType";
+        "KeyLength: $_keyLength, "
+        "TokenAgreementAlgo: $_tokenAgreementAlgorithm, "
+        "MappingType: $_mappingType";
   }
 
 
@@ -362,14 +367,14 @@ class ASN1ObjectIdentifierType {
   // A private constructor
   ASN1ObjectIdentifierType._internal(){
     _log.info('ASN1ObjectIdentifierType constructor');
-    _OIDS = _OIDS.toList();
+    _oids = _oids.toList();
     _log.info("OIDS from pointycastle library were added to list.");
     // add custom object identifiers to existing ones
     for (var customOID in customOIDS) {
       if (!checkOID(item:customOID)){
         throw ASN1ObjectIdentifierObjectException('Object identifier is not valid.');
       }
-      _OIDS.add(customOID);
+      _oids.add(customOID);
     }
   }
 
@@ -379,7 +384,7 @@ class ASN1ObjectIdentifierType {
 
 
   // object identifiers that are defined in pointycastle library
-  List<Map<String, Object>> _OIDS = oi;
+  List<Map<String, Object>> _oids = oi;
   final _log = Logger("ASN1ObjectIdentifierType");
 
 
@@ -410,29 +415,28 @@ class ASN1ObjectIdentifierType {
   // has object identifier with identifier string
   bool hasOIDWithIdentifierString({required String identifierString}) {
     _log.finer("hasOIDWithIdentifierString: $identifierString");
-    return _OIDS.any((element) => element['identifierString'] == identifierString);
+    return _oids.any((element) => element['identifierString'] == identifierString);
   }
 
 
   // get object identifier by identifier string
   Map<String, Object> getOIDByIdentifierString({required String identifierString}) {
     _log.finer("getOIDByIdentifierString: $identifierString");
-    return _OIDS.firstWhere((element) => element['identifierString'] == identifierString, orElse: () =>
+    return _oids.firstWhere((element) => element['identifierString'] == identifierString, orElse: () =>
       throw ASN1ObjectIdentifierObjectException('Object identifier with identifier string $identifierString does not exist.'));
   }
 
   // has object identifier wih identifier
   bool hasOIDWithIdentifier({required List<int> identifier}) {
     _log.finer("hasOIDWithIdentifier: $identifier");
-    return _OIDS.any((element) => element['identifier'] == identifier);
+    return _oids.any((element) => const ListEquality().equals(element['identifier'] as List<int>, identifier));
   }
 
   // get object identifier by identifier
   Map<String, Object> getOIDByIdentifier({required List<int> identifier}) {
     _log.finer("getOIDByIdentifier: $identifier");
-    return _OIDS.firstWhere((element) => element['identifier'] == identifier, orElse: () =>
+    return _oids.firstWhere((element) => const ListEquality().equals(element['identifier'] as List<int>, identifier), orElse: () =>
       throw ASN1ObjectIdentifierObjectException('Object identifier with identifier $identifier does not exist.'));
   }
 
 }
-

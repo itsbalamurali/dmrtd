@@ -48,12 +48,12 @@ class DESedeSSC extends SSC {
     super(ssc, DESedeCipher.blockSize * 8);
 }
 
-class DESede_PACE_SSC extends SSC {
-  DESede_PACE_SSC() :
+class DESedePaceSSC extends SSC {
+  DESedePaceSSC() :
         super(Uint8List(8), DESedeCipher.blockSize * 8);
 }
 
-class AES_SSC extends SSC {
+class AesSSC extends SSC {
   // icao 9303 p11 doc section 9.8.7.3 specifies that AES SSC is 16 bytes long and is initialized to 0.
-  AES_SSC() : super(Uint8List(16), AESCipher128().size * 8);
+  AesSSC() : super(Uint8List(16), AESCipher128().size * 8);
 }

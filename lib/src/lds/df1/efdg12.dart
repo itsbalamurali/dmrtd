@@ -1,9 +1,9 @@
+import "dart:typed_data";
 // Created by Crt Vavros, copyright © 2022 ZeroPass. All rights reserved.
 // ignore_for_file: constant_identifier_names
 
 import 'dart:core';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:dmrtd/extensions.dart';
 
 import 'dg.dart';
@@ -43,7 +43,7 @@ class EfDG12 extends DataGroup {
   String? get issuingAuthority => _issuingAuthority;
 
 
-  EfDG12.fromBytes(Uint8List data) : super.fromBytes(data);
+  EfDG12.fromBytes(super.data) : super.fromBytes();
 
   @override
   int get fid => FID;
